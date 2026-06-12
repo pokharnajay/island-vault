@@ -1,4 +1,4 @@
-import { app, clipboard } from 'electron'
+import { clipboard } from 'electron'
 import { createHash } from 'crypto'
 import { basename } from 'path'
 import * as store from './store'
@@ -6,7 +6,7 @@ import * as blobs from './blob-store'
 import { consumeSuppression } from './clipboard-writer'
 import { hasFileClip, rawFileFingerprint, readFilePaths } from './pasteboard-files'
 import { getSettings } from './settings'
-import { getFrontmostApp, type FrontApp } from './frontmost-app'
+import { extractAppIcon, getFrontmostApp, type FrontApp } from './frontmost-app'
 
 // Password managers and similar mark items with these types — never capture.
 const SKIP_TYPES = [
@@ -116,12 +116,9 @@ function buildClip(kind: Exclude<Kind, 'none'>): store.NewClip | null {
 
 async function cacheAppIcon(front: FrontApp): Promise<void> {
   if (store.getAppIcon(front.bundleId)) return
-  try {
-    const icon = await app.getFileIcon(front.path, { size: 'normal' })
-    const png = (icon.getSize().width > 32 ? icon.resize({ width: 32 }) : icon).toPNG()
-    store.upsertAppIcon(front.bundleId, front.name, blobs.saveAppIcon(front.bundleId, png))
-  } catch {
-    // icon stays absent; renderer falls back to text-only badge
+  const file = `appicon-${front.bundleId.replace(/[^a-zA-Z0-9.-]/g, '_')}.png`
+  if (await extractAppIcon(front.path, blobs.resolveBlob(file))) {
+    store.upsertAppIcon(front.bundleId, front.name, file)
   }
 }
 

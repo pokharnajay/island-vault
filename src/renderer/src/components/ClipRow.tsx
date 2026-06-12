@@ -71,6 +71,9 @@ export default function ClipRow({ clip, job, onCopy, selected, onAppClick }: Pro
             alt={clip.sourceApp.name}
             title={`Copied from ${clip.sourceApp.name} — click to filter`}
             draggable={false}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+            }}
             onClick={(e) => {
               e.stopPropagation()
               onAppClick?.(clip.sourceApp!.bundleId, clip.sourceApp!.name)

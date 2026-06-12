@@ -22,12 +22,6 @@ export function saveImage(
   return { imagePath: imageFile, thumbPath: thumbFile }
 }
 
-export function saveAppIcon(bundleId: string, png: Buffer): string {
-  const file = `appicon-${bundleId.replace(/[^a-zA-Z0-9.-]/g, '_')}.png`
-  writeFileSync(join(BLOBS_DIR, file), png)
-  return file
-}
-
 export function resolveBlob(name: string): string {
   return isAbsolute(name) ? name : join(BLOBS_DIR, name)
 }
