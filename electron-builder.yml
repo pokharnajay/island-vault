@@ -1,0 +1,21 @@
+appId: com.jaypokharna.islandvault
+productName: Island Vault
+directories:
+  buildResources: build
+  output: dist
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.gitignore,README.md}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!{dist,docs}/*'
+mac:
+  target:
+    - dmg
+    - zip
+  identity: null
+  category: public.app-category.productivity
+  extendInfo:
+    LSUIElement: true
+npmRebuild: true

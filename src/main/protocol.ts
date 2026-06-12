@@ -1,0 +1,28 @@
+import { net, protocol } from 'electron'
+import { pathToFileURL } from 'url'
+import { getItem } from './store'
+
+export function registerVaultScheme(): void {
+  protocol.registerSchemesAsPrivileged([
+    {
+      scheme: 'vault',
+      privileges: { standard: false, secure: true, supportFetchAPI: true, stream: true }
+    }
+  ])
+}
+
+// vault://thumb/<id> and vault://image/<id>
+export function registerVaultProtocol(): void {
+  protocol.handle('vault', (req) => {
+    try {
+      const u = new URL(req.url)
+      const id = Number(u.pathname.replace(/^\//, ''))
+      const row = Number.isFinite(id) ? getItem(id) : undefined
+      const path = u.host === 'image' ? row?.image_path : row?.thumb_path
+      if (!path) return new Response('not found', { status: 404 })
+      return net.fetch(pathToFileURL(path).toString())
+    } catch {
+      return new Response('bad request', { status: 400 })
+    }
+  })
+}
