@@ -10,15 +10,9 @@ interface Props {
   active: boolean
 }
 
-interface AppFilter {
-  bundleId: string
-  name: string
-}
-
 export default function Tray({ clips, aiJobs, onCopy, active }: Props) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<ClipMeta[] | null>(null)
-  const [appFilter, setAppFilter] = useState<AppFilter | null>(null)
   const [selected, setSelected] = useState(0)
   const stripRef = useRef<HTMLDivElement>(null)
   const searchToken = useRef(0)
@@ -40,13 +34,12 @@ export default function Tray({ clips, aiJobs, onCopy, active }: Props) {
     return () => clearTimeout(t)
   }, [q])
 
-  const base = results ?? clips
-  const shown = appFilter ? base.filter((c) => c.sourceApp?.bundleId === appFilter.bundleId) : base
+  const shown = results ?? clips
 
   // Keep selection valid and visible
   useEffect(() => {
     setSelected(0)
-  }, [q, appFilter, shown.length])
+  }, [q, shown.length])
 
   useEffect(() => {
     const el = stripRef.current?.children[selected] as HTMLElement | undefined
@@ -93,25 +86,12 @@ export default function Tray({ clips, aiJobs, onCopy, active }: Props) {
     <div className="tray">
       <header className="trayHeader">
         <span className="title">Island Vault</span>
-        {appFilter ? (
-          <button className="filterChip" onClick={() => setAppFilter(null)}>
-            {appFilter.name} ✕
-          </button>
-        ) : (
-          <span className="count">{clips.length}</span>
-        )}
+        <span className="count">{clips.length}</span>
       </header>
       <SearchBar value={query} onChange={setQuery} />
       <div className="strip" ref={stripRef}>
         {shown.map((c, i) => (
-          <ClipRow
-            key={c.id}
-            clip={c}
-            job={aiJobs[c.id]}
-            onCopy={onCopy}
-            selected={i === selected}
-            onAppClick={(bundleId, name) => setAppFilter({ bundleId, name })}
-          />
+          <ClipRow key={c.id} clip={c} job={aiJobs[c.id]} onCopy={onCopy} selected={i === selected} />
         ))}
         {shown.length === 0 && (
           <div className="empty">

@@ -5,7 +5,6 @@ interface Props {
   job?: AiJobEvent
   onCopy: (clip: ClipMeta) => void
   selected?: boolean
-  onAppClick?: (bundleId: string, name: string) => void
 }
 
 function fmtAgo(ts: number): string {
@@ -34,7 +33,7 @@ const ACTION_LABEL: Record<AiAction, string> = {
   extract: 'Extracting…'
 }
 
-export default function ClipRow({ clip, job, onCopy, selected, onAppClick }: Props) {
+export default function ClipRow({ clip, job, onCopy, selected }: Props) {
   const missing = clip.type === 'files' && (clip.files?.some((f) => !f.exists) ?? false)
 
   const fileNames =
@@ -64,22 +63,6 @@ export default function ClipRow({ clip, job, onCopy, selected, onAppClick }: Pro
         {clip.type === 'files' && <p className="cardText">{fileNames}</p>}
       </div>
       <div className="cardMeta">
-        {clip.sourceApp && (
-          <img
-            className="appIcon"
-            src={clip.sourceApp.iconUrl}
-            alt={clip.sourceApp.name}
-            title={`Copied from ${clip.sourceApp.name} — click to filter`}
-            draggable={false}
-            onError={(e) => {
-              e.currentTarget.style.display = 'none'
-            }}
-            onClick={(e) => {
-              e.stopPropagation()
-              onAppClick?.(clip.sourceApp!.bundleId, clip.sourceApp!.name)
-            }}
-          />
-        )}
         {clip.pinned && <span className="pinBadge">★</span>}
         <span className="metaLabel">{typeLabel(clip)}</span>
         <span>·</span>

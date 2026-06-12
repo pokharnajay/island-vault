@@ -6,7 +6,6 @@ import * as blobs from './blob-store'
 import { consumeSuppression } from './clipboard-writer'
 import { hasFileClip, rawFileFingerprint, readFilePaths } from './pasteboard-files'
 import { getSettings } from './settings'
-import { extractAppIcon, getFrontmostApp, type FrontApp } from './frontmost-app'
 
 // Password managers and similar mark items with these types — never capture.
 const SKIP_TYPES = [
@@ -114,15 +113,7 @@ function buildClip(kind: Exclude<Kind, 'none'>): store.NewClip | null {
   }
 }
 
-async function cacheAppIcon(front: FrontApp): Promise<void> {
-  if (store.getAppIcon(front.bundleId)) return
-  const file = `appicon-${front.bundleId.replace(/[^a-zA-Z0-9.-]/g, '_')}.png`
-  if (await extractAppIcon(front.path, blobs.resolveBlob(file))) {
-    store.upsertAppIcon(front.bundleId, front.name, file)
-  }
-}
-
-async function capture(kind: Exclude<Kind, 'none'>): Promise<void> {
+function capture(kind: Exclude<Kind, 'none'>): void {
   // Self-write? Verify by hash for text/files (cheap); by type for images
   // (avoids re-encoding a large PNG just to confirm what we already know).
   const suppressedId = consumeSuppression()
@@ -145,32 +136,18 @@ async function capture(kind: Exclude<Kind, 'none'>): Promise<void> {
 
   const clip = buildClip(kind)
   if (!clip) return
-  const front = await getFrontmostApp()
-  if (front) {
-    clip.sourceApp = front.bundleId
-    clip.sourceAppName = front.name
-    await cacheAppIcon(front)
-  }
   store.insertOrBump(clip)
   blobs.gcBlobs(store.evict(getSettings().historyCap))
   onChange()
 }
 
-let capturing = false
-
 function tick(): void {
   try {
     const { fp, kind } = fingerprint()
     if (fp === lastFp) return
-    if (capturing) return // re-check this fp next tick once the in-flight capture lands
     lastFp = fp
     if (kind === 'none') return
-    capturing = true
-    void capture(kind)
-      .catch((err) => console.error('[clipboard-watcher]', err))
-      .finally(() => {
-        capturing = false
-      })
+    capture(kind)
   } catch (err) {
     console.error('[clipboard-watcher]', err)
   }
