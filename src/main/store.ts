@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite'
-import { app } from 'electron'
 import { existsSync } from 'fs'
-import { basename, join } from 'path'
+import { basename } from 'path'
+import { DB_PATH, ensureStorageDirs, migrateLegacyStore } from './storage-paths'
 import type { ClipMeta, ClipType } from '@shared/types'
 
 export interface ClipRowFull {
@@ -39,7 +39,9 @@ export interface NewClip {
 let db: DatabaseSync
 
 export function initStore(): void {
-  db = new DatabaseSync(join(app.getPath('userData'), 'vault.db'))
+  ensureStorageDirs()
+  migrateLegacyStore()
+  db = new DatabaseSync(DB_PATH)
   db.exec('PRAGMA journal_mode = WAL')
   db.exec(`
     CREATE TABLE IF NOT EXISTS items (
@@ -62,6 +64,33 @@ export function initStore(): void {
     CREATE INDEX IF NOT EXISTS idx_items_order ON items(pinned DESC, last_copied_at DESC);
     CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
   `)
+  migrateSchema()
+}
+
+// Blob columns hold bare filenames (resolved against BLOBS_DIR at use time) so the
+// data directory can move without breaking rows. v<2 stored absolute paths.
+function migrateSchema(): void {
+  const row = db.prepare('PRAGMA user_version').get() as unknown as { user_version: number }
+  if (row.user_version >= 2) return
+  const images = db
+    .prepare('SELECT id, image_path, thumb_path FROM items WHERE image_path IS NOT NULL')
+    .all() as unknown as Pick<ClipRowFull, 'id' | 'image_path' | 'thumb_path'>[]
+  const upd = db.prepare('UPDATE items SET image_path = ?, thumb_path = ? WHERE id = ?')
+  db.exec('BEGIN')
+  try {
+    for (const r of images) {
+      upd.run(
+        r.image_path ? basename(r.image_path) : null,
+        r.thumb_path ? basename(r.thumb_path) : null,
+        r.id
+      )
+    }
+    db.exec('PRAGMA user_version = 2')
+    db.exec('COMMIT')
+  } catch (err) {
+    db.exec('ROLLBACK')
+    throw err
+  }
 }
 
 export function insertOrBump(c: NewClip): { id: number; inserted: boolean } {

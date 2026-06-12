@@ -1,6 +1,7 @@
 import { net, protocol } from 'electron'
 import { pathToFileURL } from 'url'
 import { getItem } from './store'
+import { resolveBlob } from './blob-store'
 
 export function registerVaultScheme(): void {
   protocol.registerSchemesAsPrivileged([
@@ -18,9 +19,9 @@ export function registerVaultProtocol(): void {
       const u = new URL(req.url)
       const id = Number(u.pathname.replace(/^\//, ''))
       const row = Number.isFinite(id) ? getItem(id) : undefined
-      const path = u.host === 'image' ? row?.image_path : row?.thumb_path
-      if (!path) return new Response('not found', { status: 404 })
-      return net.fetch(pathToFileURL(path).toString())
+      const blob = u.host === 'image' ? row?.image_path : row?.thumb_path
+      if (!blob) return new Response('not found', { status: 404 })
+      return net.fetch(pathToFileURL(resolveBlob(blob)).toString())
     } catch {
       return new Response('bad request', { status: 400 })
     }

@@ -28,6 +28,12 @@ if (!gotLock) {
     initBlobStore()
     registerVaultProtocol()
     registerIpc()
+
+    // Keep the OS login-item registration in sync with the stored setting
+    if (app.isPackaged) {
+      app.setLoginItemSettings({ openAtLogin: getSettings().launchAtLogin })
+    }
+
     createOverlayWindow()
 
     startWatcher(() => {

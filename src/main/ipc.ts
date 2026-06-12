@@ -30,8 +30,9 @@ export function registerIpc(): void {
     if (row.type === 'text') {
       writeTextClip(id, row.text_content ?? '', row.html_content)
     } else if (row.type === 'image') {
-      if (!row.image_path || !existsSync(row.image_path)) return { ok: false, reason: 'gone' }
-      writeImageClip(id, row.image_path)
+      const imagePath = row.image_path ? blobs.resolveBlob(row.image_path) : null
+      if (!imagePath || !existsSync(imagePath)) return { ok: false, reason: 'gone' }
+      writeImageClip(id, imagePath)
     } else {
       let paths: string[] = []
       try {

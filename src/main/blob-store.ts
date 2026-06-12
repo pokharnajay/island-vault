@@ -1,33 +1,35 @@
-import { app } from 'electron'
 import type { NativeImage } from 'electron'
 import { mkdirSync, unlinkSync, writeFileSync } from 'fs'
-import { join } from 'path'
-
-let dir = ''
+import { isAbsolute, join } from 'path'
+import { BLOBS_DIR } from './storage-paths'
 
 export function initBlobStore(): void {
-  dir = join(app.getPath('userData'), 'blobs')
-  mkdirSync(dir, { recursive: true })
+  mkdirSync(BLOBS_DIR, { recursive: true })
 }
 
+// Returns bare filenames — the store keeps blobs location-independent.
 export function saveImage(
   hash: string,
   png: Buffer,
   img: NativeImage
 ): { imagePath: string; thumbPath: string } {
-  const imagePath = join(dir, `${hash}.png`)
-  writeFileSync(imagePath, png)
+  const imageFile = `${hash}.png`
+  writeFileSync(join(BLOBS_DIR, imageFile), png)
   const { width } = img.getSize()
   const thumb = width > 280 ? img.resize({ width: 280 }) : img
-  const thumbPath = join(dir, `${hash}.thumb.jpg`)
-  writeFileSync(thumbPath, thumb.toJPEG(80))
-  return { imagePath, thumbPath }
+  const thumbFile = `${hash}.thumb.jpg`
+  writeFileSync(join(BLOBS_DIR, thumbFile), thumb.toJPEG(80))
+  return { imagePath: imageFile, thumbPath: thumbFile }
 }
 
-export function gcBlobs(paths: string[]): void {
-  for (const p of paths) {
+export function resolveBlob(name: string): string {
+  return isAbsolute(name) ? name : join(BLOBS_DIR, name)
+}
+
+export function gcBlobs(names: string[]): void {
+  for (const n of names) {
     try {
-      unlinkSync(p)
+      unlinkSync(resolveBlob(n))
     } catch {
       // already gone
     }
