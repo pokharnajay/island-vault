@@ -127,82 +127,94 @@ body {
   box-shadow: 0 0 0 1.5px rgba(10, 132, 255, 0.6);
 }
 
-.list {
+.strip {
   flex: 1;
-  overflow-y: auto;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-right: 2px;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  padding-bottom: 4px;
 }
 
-.list::-webkit-scrollbar {
-  width: 6px;
+.strip::-webkit-scrollbar {
+  height: 5px;
 }
 
-.list::-webkit-scrollbar-thumb {
+.strip::-webkit-scrollbar-thumb {
   background: #3a3a3c;
   border-radius: 3px;
 }
 
-.sectionLabel {
-  color: #636366;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  padding: 8px 6px 2px;
-}
-
-.row {
+.card {
   position: relative;
-  padding: 9px 34px 9px 10px;
-  border-radius: 12px;
-  transition: background 120ms ease;
+  flex: 0 0 150px;
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  background: #161618;
+  border: 0.5px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 10px 10px 8px;
+  scroll-snap-align: start;
+  transition:
+    background 120ms ease,
+    transform 120ms ease;
 }
 
-.row:hover {
-  background: #1c1c1e;
+.card:hover {
+  background: #1f1f22;
+  transform: translateY(-1px);
 }
 
-.row:active {
+.card:active {
   background: #2c2c2e;
+  transform: translateY(0);
 }
 
-.rowText {
+.cardBody {
+  flex: 1;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.cardText {
   color: #f2f2f7;
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 11.5px;
+  line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 6;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
 }
 
-.rowImg {
-  max-width: 100%;
-  max-height: 110px;
-  border-radius: 8px;
+.cardImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
   display: block;
   object-fit: cover;
 }
 
-.rowMeta {
+.cardMeta {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   align-items: center;
   color: #8e8e93;
-  font-size: 11px;
-  margin-top: 3px;
+  font-size: 10px;
+  margin-top: 7px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .pinBadge {
   color: #ffd60a;
-  font-size: 10px;
+  font-size: 9px;
 }
 
-.row.missing .rowText {
+.card.missing .cardText {
   color: #636366;
   text-decoration: line-through;
 }
@@ -235,20 +247,21 @@ body {
 
 .pinBtn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: none;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.55);
   border: none;
-  color: #8e8e93;
-  font-size: 13px;
+  border-radius: 8px;
+  color: #d1d1d6;
+  font-size: 12px;
   font-family: inherit;
   opacity: 0;
   transition: opacity 120ms ease;
-  padding: 2px 4px;
+  padding: 2px 5px;
   cursor: pointer;
 }
 
-.row:hover .pinBtn {
+.card:hover .pinBtn {
   opacity: 1;
 }
 
@@ -259,8 +272,10 @@ body {
 .empty {
   color: #636366;
   font-size: 12px;
-  text-align: center;
-  padding: 30px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .flashChip {

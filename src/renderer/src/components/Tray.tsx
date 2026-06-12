@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import SearchBar from './SearchBar'
 import ClipRow from './ClipRow'
 import type { AiJobEvent, ClipMeta } from '@shared/types'
@@ -16,10 +16,23 @@ function matches(c: ClipMeta, q: string): boolean {
 
 export default function Tray({ clips, aiJobs, onCopy }: Props) {
   const [query, setQuery] = useState('')
+  const stripRef = useRef<HTMLDivElement>(null)
   const q = query.trim().toLowerCase()
   const filtered = q ? clips.filter((c) => matches(c, q)) : clips
-  const pinned = filtered.filter((c) => c.pinned)
-  const recent = filtered.filter((c) => !c.pinned)
+
+  // Mouse wheels scroll vertically — translate to horizontal strip movement.
+  useEffect(() => {
+    const el = stripRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent): void => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        el.scrollLeft += e.deltaY
+        e.preventDefault()
+      }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
 
   return (
     <div className="tray">
@@ -28,13 +41,8 @@ export default function Tray({ clips, aiJobs, onCopy }: Props) {
         <span className="count">{clips.length}</span>
       </header>
       <SearchBar value={query} onChange={setQuery} />
-      <div className="list">
-        {pinned.length > 0 && <div className="sectionLabel">Pinned</div>}
-        {pinned.map((c) => (
-          <ClipRow key={c.id} clip={c} job={aiJobs[c.id]} onCopy={onCopy} />
-        ))}
-        {pinned.length > 0 && recent.length > 0 && <div className="sectionLabel">Recent</div>}
-        {recent.map((c) => (
+      <div className="strip" ref={stripRef}>
+        {filtered.map((c) => (
           <ClipRow key={c.id} clip={c} job={aiJobs[c.id]} onCopy={onCopy} />
         ))}
         {filtered.length === 0 && (

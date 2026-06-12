@@ -45,7 +45,7 @@ export default function ClipRow({ clip, job, onCopy }: Props) {
 
   return (
     <div
-      className={`row ${missing ? 'missing' : ''}`}
+      className={`card ${missing ? 'missing' : ''}`}
       onClick={() => {
         if (!missing) onCopy(clip)
       }}
@@ -54,14 +54,16 @@ export default function ClipRow({ clip, job, onCopy }: Props) {
         void window.vault.contextMenu(clip.id)
       }}
     >
-      {clip.type === 'text' && <p className="rowText">{clip.preview}</p>}
-      {clip.type === 'image' && (
-        <img className="rowImg" src={clip.thumbUrl} alt={clip.preview} draggable={false} />
-      )}
-      {clip.type === 'files' && <p className="rowText">{fileNames}</p>}
-      <div className="rowMeta">
+      <div className="cardBody">
+        {clip.type === 'text' && <p className="cardText">{clip.preview}</p>}
+        {clip.type === 'image' && (
+          <img className="cardImg" src={clip.thumbUrl} alt={clip.preview} draggable={false} />
+        )}
+        {clip.type === 'files' && <p className="cardText">{fileNames}</p>}
+      </div>
+      <div className="cardMeta">
         {clip.pinned && <span className="pinBadge">★</span>}
-        <span>{typeLabel(clip)}</span>
+        <span className="metaLabel">{typeLabel(clip)}</span>
         <span>·</span>
         <span>{fmtAgo(clip.lastCopiedAt)}</span>
         {job?.status === 'running' && (

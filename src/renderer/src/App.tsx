@@ -6,7 +6,7 @@ import type { AiJobEvent, ClipMeta, UiMetrics } from '@shared/types'
 const HOVER_INTENT_MS = 120
 const LEAVE_GRACE_MS = 350
 const EXPANDED_W = 420
-const EXPANDED_H = 520
+const EXPANDED_H = 248
 
 interface Flash {
   msg: string
