@@ -1,4 +1,4 @@
-import { clipboard } from 'electron'
+import { app, clipboard } from 'electron'
 import { createHash } from 'crypto'
 import { basename } from 'path'
 import * as store from './store'
@@ -6,6 +6,7 @@ import * as blobs from './blob-store'
 import { consumeSuppression } from './clipboard-writer'
 import { hasFileClip, rawFileFingerprint, readFilePaths } from './pasteboard-files'
 import { getSettings } from './settings'
+import { getFrontmostApp, type FrontApp } from './frontmost-app'
 
 // Password managers and similar mark items with these types — never capture.
 const SKIP_TYPES = [
@@ -113,7 +114,18 @@ function buildClip(kind: Exclude<Kind, 'none'>): store.NewClip | null {
   }
 }
 
-function capture(kind: Exclude<Kind, 'none'>): void {
+async function cacheAppIcon(front: FrontApp): Promise<void> {
+  if (store.getAppIcon(front.bundleId)) return
+  try {
+    const icon = await app.getFileIcon(front.path, { size: 'normal' })
+    const png = (icon.getSize().width > 32 ? icon.resize({ width: 32 }) : icon).toPNG()
+    store.upsertAppIcon(front.bundleId, front.name, blobs.saveAppIcon(front.bundleId, png))
+  } catch {
+    // icon stays absent; renderer falls back to text-only badge
+  }
+}
+
+async function capture(kind: Exclude<Kind, 'none'>): Promise<void> {
   // Self-write? Verify by hash for text/files (cheap); by type for images
   // (avoids re-encoding a large PNG just to confirm what we already know).
   const suppressedId = consumeSuppression()
@@ -136,18 +148,32 @@ function capture(kind: Exclude<Kind, 'none'>): void {
 
   const clip = buildClip(kind)
   if (!clip) return
+  const front = await getFrontmostApp()
+  if (front) {
+    clip.sourceApp = front.bundleId
+    clip.sourceAppName = front.name
+    await cacheAppIcon(front)
+  }
   store.insertOrBump(clip)
   blobs.gcBlobs(store.evict(getSettings().historyCap))
   onChange()
 }
 
+let capturing = false
+
 function tick(): void {
   try {
     const { fp, kind } = fingerprint()
     if (fp === lastFp) return
+    if (capturing) return // re-check this fp next tick once the in-flight capture lands
     lastFp = fp
     if (kind === 'none') return
-    capture(kind)
+    capturing = true
+    void capture(kind)
+      .catch((err) => console.error('[clipboard-watcher]', err))
+      .finally(() => {
+        capturing = false
+      })
   } catch (err) {
     console.error('[clipboard-watcher]', err)
   }

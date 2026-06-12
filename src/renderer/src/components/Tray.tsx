@@ -7,18 +7,51 @@ interface Props {
   clips: ClipMeta[]
   aiJobs: Record<number, AiJobEvent>
   onCopy: (clip: ClipMeta) => void
+  active: boolean
 }
 
-function matches(c: ClipMeta, q: string): boolean {
-  if (c.preview.toLowerCase().includes(q)) return true
-  return c.files?.some((f) => f.name.toLowerCase().includes(q)) ?? false
+interface AppFilter {
+  bundleId: string
+  name: string
 }
 
-export default function Tray({ clips, aiJobs, onCopy }: Props) {
+export default function Tray({ clips, aiJobs, onCopy, active }: Props) {
   const [query, setQuery] = useState('')
+  const [results, setResults] = useState<ClipMeta[] | null>(null)
+  const [appFilter, setAppFilter] = useState<AppFilter | null>(null)
+  const [selected, setSelected] = useState(0)
   const stripRef = useRef<HTMLDivElement>(null)
-  const q = query.trim().toLowerCase()
-  const filtered = q ? clips.filter((c) => matches(c, q)) : clips
+  const searchToken = useRef(0)
+
+  const q = query.trim()
+
+  // Full-text search runs main-side over the whole stored content
+  useEffect(() => {
+    if (!q) {
+      setResults(null)
+      return
+    }
+    const token = ++searchToken.current
+    const t = window.setTimeout(() => {
+      void window.vault.searchClips(q).then((r) => {
+        if (searchToken.current === token) setResults(r)
+      })
+    }, 120)
+    return () => clearTimeout(t)
+  }, [q])
+
+  const base = results ?? clips
+  const shown = appFilter ? base.filter((c) => c.sourceApp?.bundleId === appFilter.bundleId) : base
+
+  // Keep selection valid and visible
+  useEffect(() => {
+    setSelected(0)
+  }, [q, appFilter, shown.length])
+
+  useEffect(() => {
+    const el = stripRef.current?.children[selected] as HTMLElement | undefined
+    el?.scrollIntoView({ behavior: 'smooth', inline: 'nearest' })
+  }, [selected])
 
   // Mouse wheels scroll vertically — translate to horizontal strip movement.
   useEffect(() => {
@@ -34,18 +67,53 @@ export default function Tray({ clips, aiJobs, onCopy }: Props) {
     return () => el.removeEventListener('wheel', onWheel)
   }, [])
 
+  // ←/→ navigate, Enter copies. Arrows still move the caret while typing a query.
+  useEffect(() => {
+    if (!active) return
+    const onKey = (e: KeyboardEvent): void => {
+      const inSearch =
+        document.activeElement instanceof HTMLInputElement && document.activeElement.value !== ''
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        if (inSearch) return
+        e.preventDefault()
+        setSelected((s) =>
+          Math.max(0, Math.min(shown.length - 1, s + (e.key === 'ArrowRight' ? 1 : -1)))
+        )
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        const clip = shown[selected]
+        if (clip) onCopy(clip)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [active, shown, selected, onCopy])
+
   return (
     <div className="tray">
       <header className="trayHeader">
         <span className="title">Island Vault</span>
-        <span className="count">{clips.length}</span>
+        {appFilter ? (
+          <button className="filterChip" onClick={() => setAppFilter(null)}>
+            {appFilter.name} ✕
+          </button>
+        ) : (
+          <span className="count">{clips.length}</span>
+        )}
       </header>
       <SearchBar value={query} onChange={setQuery} />
       <div className="strip" ref={stripRef}>
-        {filtered.map((c) => (
-          <ClipRow key={c.id} clip={c} job={aiJobs[c.id]} onCopy={onCopy} />
+        {shown.map((c, i) => (
+          <ClipRow
+            key={c.id}
+            clip={c}
+            job={aiJobs[c.id]}
+            onCopy={onCopy}
+            selected={i === selected}
+            onAppClick={(bundleId, name) => setAppFilter({ bundleId, name })}
+          />
         ))}
-        {filtered.length === 0 && (
+        {shown.length === 0 && (
           <div className="empty">
             {clips.length === 0 ? 'Copy something to get started' : 'No matches'}
           </div>

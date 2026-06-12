@@ -1,5 +1,6 @@
 export const IPC = {
   ClipsList: 'clips:list',
+  ClipsSearch: 'clips:search',
   ClipsCopy: 'clips:copy',
   ClipsPin: 'clips:pin',
   ClipsDelete: 'clips:delete',

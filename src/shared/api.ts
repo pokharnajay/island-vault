@@ -2,6 +2,7 @@ import type { AiJobEvent, ClipMeta, CopyResult, Settings, UiMetrics } from './ty
 
 export interface VaultApi {
   listClips(): Promise<ClipMeta[]>
+  searchClips(q: string): Promise<ClipMeta[]>
   copyClip(id: number): Promise<CopyResult>
   pinClip(id: number, pinned: boolean): Promise<void>
   deleteClip(id: number): Promise<void>

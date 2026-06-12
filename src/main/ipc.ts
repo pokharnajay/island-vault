@@ -24,6 +24,12 @@ function startAiJob(id: number, action: AiAction): void {
 export function registerIpc(): void {
   ipcMain.handle(IPC.ClipsList, () => store.listAll(getSettings().historyCap))
 
+  ipcMain.handle(IPC.ClipsSearch, (_e, q: string) =>
+    typeof q === 'string' && q.trim()
+      ? store.search(q.trim(), getSettings().historyCap)
+      : store.listAll(getSettings().historyCap)
+  )
+
   ipcMain.handle(IPC.ClipsCopy, async (_e, id: number): Promise<CopyResult> => {
     const row = store.getItem(id)
     if (!row) return { ok: false, reason: 'gone' }

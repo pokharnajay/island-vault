@@ -154,7 +154,7 @@ export default function App() {
       >
         <div className="pillContent">{!expanded && flash ? flash.msg : ''}</div>
         <div className="trayContent">
-          <Tray clips={clips} aiJobs={aiJobs} onCopy={handleCopy} />
+          <Tray clips={clips} aiJobs={aiJobs} onCopy={handleCopy} active={expanded} />
         </div>
         {expanded && flash && <div className={`flashChip ${flash.kind}`}>{flash.msg}</div>}
       </div>

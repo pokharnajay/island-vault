@@ -17,6 +17,7 @@ export interface ClipMeta {
   thumbUrl?: string
   imageSize?: { w: number; h: number }
   files?: ClipFileRef[]
+  sourceApp?: { bundleId: string; name: string; iconUrl: string }
 }
 
 export type AiAction = 'cleanup' | 'summarize' | 'translate' | 'extract'

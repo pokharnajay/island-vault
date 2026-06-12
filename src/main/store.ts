@@ -20,6 +20,8 @@ export interface ClipRowFull {
   pinned: number
   created_at: number
   last_copied_at: number
+  source_app: string | null
+  source_app_name: string | null
 }
 
 export interface NewClip {
@@ -34,6 +36,8 @@ export interface NewClip {
   imageH?: number
   filePaths?: string[]
   byteSize: number
+  sourceApp?: string
+  sourceAppName?: string
 }
 
 let db: DatabaseSync
@@ -67,29 +71,54 @@ export function initStore(): void {
   migrateSchema()
 }
 
-// Blob columns hold bare filenames (resolved against BLOBS_DIR at use time) so the
-// data directory can move without breaking rows. v<2 stored absolute paths.
 function migrateSchema(): void {
   const row = db.prepare('PRAGMA user_version').get() as unknown as { user_version: number }
-  if (row.user_version >= 2) return
-  const images = db
-    .prepare('SELECT id, image_path, thumb_path FROM items WHERE image_path IS NOT NULL')
-    .all() as unknown as Pick<ClipRowFull, 'id' | 'image_path' | 'thumb_path'>[]
-  const upd = db.prepare('UPDATE items SET image_path = ?, thumb_path = ? WHERE id = ?')
-  db.exec('BEGIN')
-  try {
-    for (const r of images) {
-      upd.run(
-        r.image_path ? basename(r.image_path) : null,
-        r.thumb_path ? basename(r.thumb_path) : null,
-        r.id
-      )
+  let v = row.user_version
+
+  // v2: blob columns hold bare filenames (resolved against BLOBS_DIR at use time)
+  // so the data directory can move without breaking rows. v<2 stored absolute paths.
+  if (v < 2) {
+    const images = db
+      .prepare('SELECT id, image_path, thumb_path FROM items WHERE image_path IS NOT NULL')
+      .all() as unknown as Pick<ClipRowFull, 'id' | 'image_path' | 'thumb_path'>[]
+    const upd = db.prepare('UPDATE items SET image_path = ?, thumb_path = ? WHERE id = ?')
+    db.exec('BEGIN')
+    try {
+      for (const r of images) {
+        upd.run(
+          r.image_path ? basename(r.image_path) : null,
+          r.thumb_path ? basename(r.thumb_path) : null,
+          r.id
+        )
+      }
+      db.exec('PRAGMA user_version = 2')
+      db.exec('COMMIT')
+    } catch (err) {
+      db.exec('ROLLBACK')
+      throw err
     }
-    db.exec('PRAGMA user_version = 2')
-    db.exec('COMMIT')
-  } catch (err) {
-    db.exec('ROLLBACK')
-    throw err
+    v = 2
+  }
+
+  // v3: source-app attribution + per-app icon cache
+  if (v < 3) {
+    db.exec('BEGIN')
+    try {
+      try {
+        db.exec('ALTER TABLE items ADD COLUMN source_app TEXT')
+        db.exec('ALTER TABLE items ADD COLUMN source_app_name TEXT')
+      } catch {
+        // columns already present (fresh DBs migrated mid-version)
+      }
+      db.exec(
+        'CREATE TABLE IF NOT EXISTS app_icons (bundle_id TEXT PRIMARY KEY, name TEXT, icon_file TEXT)'
+      )
+      db.exec('PRAGMA user_version = 3')
+      db.exec('COMMIT')
+    } catch (err) {
+      db.exec('ROLLBACK')
+      throw err
+    }
   }
 }
 
@@ -106,8 +135,9 @@ export function insertOrBump(c: NewClip): { id: number; inserted: boolean } {
     .prepare(
       `INSERT INTO items
        (type, hash, preview, text_content, html_content, image_path, thumb_path,
-        image_w, image_h, file_paths, byte_size, pinned, created_at, last_copied_at)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,0,?,?)`
+        image_w, image_h, file_paths, byte_size, pinned, created_at, last_copied_at,
+        source_app, source_app_name)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,0,?,?,?,?)`
     )
     .run(
       c.type,
@@ -122,7 +152,9 @@ export function insertOrBump(c: NewClip): { id: number; inserted: boolean } {
       c.filePaths ? JSON.stringify(c.filePaths) : null,
       c.byteSize,
       now,
-      now
+      now,
+      c.sourceApp ?? null,
+      c.sourceAppName ?? null
     )
   return { id: Number(info.lastInsertRowid), inserted: true }
 }
@@ -192,6 +224,34 @@ export function listAll(cap: number): ClipMeta[] {
   return rows.map(toMeta)
 }
 
+// Full-text search across content, preview, file paths, and source app name.
+export function search(q: string, cap: number): ClipMeta[] {
+  const rows = db
+    .prepare(
+      `SELECT * FROM items
+       WHERE lower(
+         coalesce(text_content,'') || ' ' || preview || ' ' ||
+         coalesce(file_paths,'') || ' ' || coalesce(source_app_name,'')
+       ) LIKE '%' || lower(?) || '%'
+       ORDER BY pinned DESC, last_copied_at DESC LIMIT ?`
+    )
+    .all(q, cap) as unknown as ClipRowFull[]
+  return rows.map(toMeta)
+}
+
+export function getAppIcon(bundleId: string): { name: string; icon_file: string } | undefined {
+  return db.prepare('SELECT name, icon_file FROM app_icons WHERE bundle_id = ?').get(
+    bundleId
+  ) as unknown as { name: string; icon_file: string } | undefined
+}
+
+export function upsertAppIcon(bundleId: string, name: string, iconFile: string): void {
+  db.prepare(
+    `INSERT INTO app_icons (bundle_id, name, icon_file) VALUES (?, ?, ?)
+     ON CONFLICT(bundle_id) DO UPDATE SET name = excluded.name, icon_file = excluded.icon_file`
+  ).run(bundleId, name, iconFile)
+}
+
 function toMeta(r: ClipRowFull): ClipMeta {
   const meta: ClipMeta = {
     id: r.id,
@@ -212,6 +272,13 @@ function toMeta(r: ClipRowFull): ClipMeta {
       meta.files = paths.map((p) => ({ path: p, name: basename(p), exists: existsSync(p) }))
     } catch {
       meta.files = []
+    }
+  }
+  if (r.source_app && r.source_app_name) {
+    meta.sourceApp = {
+      bundleId: r.source_app,
+      name: r.source_app_name,
+      iconUrl: `vault://appicon/${encodeURIComponent(r.source_app)}`
     }
   }
   return meta
