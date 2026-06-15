@@ -1,0 +1,25 @@
+<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#15131d"/>
+      <stop offset="0.55" stop-color="#0d0c12"/>
+      <stop offset="1" stop-color="#08070a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.12" r="0.75">
+      <stop offset="0" stop-color="#6E5BFF" stop-opacity="0.30"/>
+      <stop offset="0.5" stop-color="#6E5BFF" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#6E5BFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="arrow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7C6BFF" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#B06BFF" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#bg)"/>
+  <rect width="600" height="400" fill="url(#glow)"/>
+  <!-- drag-to-Applications arrow between the two icon slots (icons sit at y=210) -->
+  <g transform="translate(0,210)" opacity="0.9">
+    <rect x="278" y="-5" width="58" height="10" rx="5" fill="url(#arrow)"/>
+    <path d="M 332 -20 L 366 0 L 332 20 Z" fill="#B06BFF" opacity="0.9"/>
+  </g>
+</svg>

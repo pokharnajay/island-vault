@@ -10,7 +10,9 @@ files:
   - '!{.gitignore,README.md}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
   - '!{dist,docs}/*'
+artifactName: Island-Vault-${version}-${arch}.${ext}
 mac:
+  icon: build/icon.icns
   target:
     - dmg
     - zip
@@ -18,4 +20,19 @@ mac:
   category: public.app-category.productivity
   extendInfo:
     LSUIElement: true
+dmg:
+  icon: build/icon.icns
+  background: build/dmg-background.png
+  iconSize: 120
+  window:
+    width: 600
+    height: 400
+  contents:
+    - x: 170
+      y: 210
+      type: file
+    - x: 430
+      y: 210
+      type: link
+      path: /Applications
 npmRebuild: true

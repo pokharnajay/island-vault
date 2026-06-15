@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Island Vault — Clipboard manager that lives in your notch</title>
+<meta name="description" content="Island Vault is a jet-black clipboard manager for macOS that lives in the MacBook notch. Captures text, images and files automatically. 100% local and private." />
+<meta name="theme-color" content="#000000" />
+<link rel="icon" type="image/png" href="./icon.png" />
+<meta property="og:title" content="Island Vault" />
+<meta property="og:description" content="A clipboard vault that lives in your MacBook notch. 100% local and private." />
+<meta property="og:image" content="./icon.png" />
+<meta property="og:type" content="website" />
+<style>
+  :root {
+    --bg: #050506;
+    --bg-soft: #0c0d10;
+    --card: #111216;
+    --card-hover: #16181d;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --ink: #f4f4f6;
+    --ink-soft: #a4a6ad;
+    --ink-faint: #6c6e76;
+    --accent: #6e7bff;
+    --accent-2: #b06bff;
+    --accent-soft: rgba(110, 123, 255, 0.16);
+    --radius: 18px;
+    --radius-lg: 26px;
+    --maxw: 1040px;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+      "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 17px;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* Ambient gradient glow behind hero */
+  .glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .glow::before {
+    content: "";
+    position: absolute;
+    top: -260px;
+    left: 50%;
+    width: 760px;
+    height: 760px;
+    transform: translateX(-50%);
+    background: radial-gradient(circle at center,
+      rgba(110, 123, 255, 0.28),
+      rgba(176, 107, 255, 0.10) 40%,
+      transparent 70%);
+    filter: blur(8px);
+  }
+
+  /* ---------- Nav ---------- */
+  header.nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: saturate(160%) blur(18px);
+    -webkit-backdrop-filter: saturate(160%) blur(18px);
+    background: rgba(5, 5, 6, 0.62);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 62px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .brand img {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+  .nav-links { display: flex; align-items: center; gap: 8px; }
+  .nav-links a {
+    color: var(--ink-soft);
+    font-size: 15px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    transition: color 0.18s ease, background 0.18s ease;
+  }
+  .nav-links a:hover { color: var(--ink); background: rgba(255, 255, 255, 0.05); }
+  .nav-cta {
+    color: #fff !important;
+    background: var(--accent);
+    font-weight: 540;
+  }
+  .nav-cta:hover { background: #5d6bff !important; }
+  @media (max-width: 620px) {
+    .nav-links a.hide-sm { display: none; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    text-align: center;
+    padding: 96px 0 64px;
+    overflow: hidden;
+  }
+  .hero .wrap { position: relative; z-index: 1; }
+
+  /* Notch motif */
+  .notch-stage {
+    position: relative;
+    height: 60px;
+    margin: 0 auto 34px;
+    display: flex;
+    justify-content: center;
+  }
+  .notch {
+    position: relative;
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-top: none;
+    border-radius: 0 0 22px 22px;
+    height: 30px;
+    width: 188px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+  }
+  .notch .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #2b2d34;
+  }
+  .notch .pill {
+    width: 30px;
+    height: 6px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 26px;
+    letter-spacing: 0;
+  }
+  .eyebrow .live {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #3ad29f; box-shadow: 0 0 0 4px rgba(58, 210, 159, 0.16);
+  }
+
+  .hero-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 27px;
+    margin-bottom: 26px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  }
+
+  h1 {
+    font-size: clamp(40px, 7vw, 68px);
+    line-height: 1.02;
+    font-weight: 680;
+    letter-spacing: -0.035em;
+    margin: 0 0 18px;
+  }
+  h1 .grad {
+    background: linear-gradient(95deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tagline {
+    font-size: clamp(18px, 2.4vw, 22px);
+    color: var(--ink-soft);
+    max-width: 620px;
+    margin: 0 auto 38px;
+    line-height: 1.5;
+  }
+
+  .cta-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    font-size: 17px;
+    font-weight: 560;
+    padding: 16px 28px;
+    border-radius: 15px;
+    transition: transform 0.16s ease, background 0.18s ease, box-shadow 0.18s ease;
+    border: 1px solid transparent;
+  }
+  .btn-primary {
+    background: linear-gradient(95deg, var(--accent), var(--accent-2));
+    color: #fff;
+    box-shadow: 0 12px 34px rgba(110, 123, 255, 0.34);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 18px 44px rgba(110, 123, 255, 0.42); }
+  .btn-primary small {
+    display: block;
+    font-size: 12px;
+    font-weight: 440;
+    opacity: 0.82;
+    margin-top: 1px;
+    letter-spacing: 0;
+  }
+  .btn-primary .apple { font-size: 22px; line-height: 1; margin-top: -2px; }
+  .btn-ghost {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-strong);
+  }
+  .btn-ghost:hover { background: rgba(255, 255, 255, 0.09); transform: translateY(-2px); }
+
+  .meta-line {
+    margin-top: 22px;
+    font-size: 13.5px;
+    color: var(--ink-faint);
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .meta-line span { display: inline-flex; align-items: center; gap: 7px; }
+
+  /* ---------- Card strip preview ---------- */
+  .preview {
+    position: relative;
+    z-index: 1;
+    margin: 58px auto 0;
+    max-width: 880px;
+    background: linear-gradient(180deg, #0e0f13, #08090b);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55);
+  }
+  .preview-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px 16px;
+    color: var(--ink-faint);
+    font-size: 13px;
+  }
+  .preview-search {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 13px;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13.5px;
+  }
+  .strip {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 4px 2px 8px;
+    scrollbar-width: none;
+  }
+  .strip::-webkit-scrollbar { display: none; }
+  .clip {
+    flex: 0 0 168px;
+    height: 132px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+  .clip:hover { transform: translateY(-4px); border-color: var(--border-strong); }
+  .clip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .clip .kind {
+    font-size: 11px;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .clip .body { font-size: 13px; color: var(--ink-soft); line-height: 1.45; overflow: hidden; flex: 1; }
+  .clip .pin { margin-left: auto; color: var(--accent-2); }
+  .clip .img-fill {
+    flex: 1;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2a2150, #4a2c6e 60%, #6e7bff);
+  }
+
+  /* ---------- Sections ---------- */
+  section { position: relative; padding: 92px 0; }
+  .section-tag {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 560;
+    letter-spacing: 0.02em;
+    margin-bottom: 14px;
+  }
+  h2 {
+    font-size: clamp(28px, 4.4vw, 42px);
+    font-weight: 660;
+    letter-spacing: -0.03em;
+    margin: 0 0 16px;
+    line-height: 1.08;
+  }
+  .section-lead {
+    font-size: 19px;
+    color: var(--ink-soft);
+    max-width: 620px;
+    margin: 0 0 50px;
+  }
+  .center { text-align: center; }
+  .center .section-lead { margin-left: auto; margin-right: auto; }
+
+  /* Features grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 880px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  .feature {
+    background: linear-gradient(180deg, var(--card), var(--bg-soft));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px 24px;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .feature:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-strong);
+    background: linear-gradient(180deg, var(--card-hover), var(--bg-soft));
+  }
+  .feature .ico {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(110, 123, 255, 0.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 18px;
+  }
+  .feature h3 {
+    font-size: 18.5px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 9px;
+  }
+  .feature p { font-size: 15px; color: var(--ink-soft); margin: 0; line-height: 1.55; }
+  .feature.wide { grid-column: span 2; }
+  @media (max-width: 880px) { .feature.wide { grid-column: span 2; } }
+  @media (max-width: 560px) { .feature.wide { grid-column: span 1; } }
+
+  /* AI actions chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .chip {
+    font-size: 13px;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    padding: 6px 13px;
+  }
+
+  /* ---------- Privacy strip ---------- */
+  .privacy {
+    background:
+      radial-gradient(120% 140% at 50% 0%, rgba(58, 210, 159, 0.10), transparent 60%),
+      linear-gradient(180deg, #0a0e0c, #07090a);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 56px 40px;
+    text-align: center;
+  }
+  .privacy .ico {
+    width: 60px; height: 60px;
+    border-radius: 17px;
+    background: rgba(58, 210, 159, 0.14);
+    border: 1px solid rgba(58, 210, 159, 0.3);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+  .privacy h2 { margin-bottom: 14px; }
+  .privacy p { color: var(--ink-soft); max-width: 640px; margin: 0 auto 8px; font-size: 17px; }
+  .privacy .pills { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+  .privacy .pills .chip { background: rgba(58, 210, 159, 0.08); border-color: rgba(58, 210, 159, 0.26); }
+
+  /* ---------- Install steps ---------- */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    counter-reset: step;
+  }
+  @media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+  .step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px 24px;
+    position: relative;
+  }
+  .step .num {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(110, 123, 255, 0.3);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 640; font-size: 15px;
+    margin-bottom: 16px;
+  }
+  .step h3 { font-size: 17px; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .step p { font-size: 14.5px; color: var(--ink-soft); margin: 0; line-height: 1.55; }
+  .step code {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .gatekeeper-note {
+    margin-top: 22px;
+    background: rgba(255, 196, 117, 0.06);
+    border: 1px solid rgba(255, 196, 117, 0.22);
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .gatekeeper-note .gk-ico { font-size: 18px; flex-shrink: 0; }
+  .gatekeeper-note b { color: var(--ink); font-weight: 580; }
+
+  /* ---------- Final CTA ---------- */
+  .final {
+    text-align: center;
+    background: linear-gradient(180deg, #0d0e13, #060608);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 64px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .final::before {
+    content: "";
+    position: absolute;
+    top: -200px; left: 50%;
+    width: 520px; height: 520px;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(110, 123, 255, 0.18), transparent 70%);
+    pointer-events: none;
+  }
+  .final > * { position: relative; z-index: 1; }
+  .final h2 { margin-bottom: 12px; }
+  .final p { color: var(--ink-soft); margin: 0 auto 32px; max-width: 520px; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 0;
+    margin-top: 30px;
+  }
+  .foot-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .foot-brand { display: flex; align-items: center; gap: 10px; color: var(--ink-soft); font-size: 15px; }
+  .foot-brand img { width: 22px; height: 22px; border-radius: 6px; }
+  .foot-links { display: flex; gap: 22px; font-size: 14.5px; color: var(--ink-faint); }
+  .foot-links a:hover { color: var(--ink); }
+
+  @media (max-width: 600px) {
+    section { padding: 70px 0; }
+    .hero { padding: 72px 0 48px; }
+    .privacy, .final { padding: 44px 24px; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top">
+        <img src="./icon.png" alt="Island Vault icon" />
+        Island Vault
+      </a>
+      <nav class="nav-links">
+        <a class="hide-sm" href="#features">Features</a>
+        <a class="hide-sm" href="#install">Install</a>
+        <a class="hide-sm" href="https://github.com/pokharnajay/island-vault">GitHub</a>
+        <a class="nav-cta" href="https://github.com/pokharnajay/island-vault/releases/latest/download/Island-Vault-0.1.0-arm64.dmg">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================== HERO ===================== -->
+  <div id="top" class="hero">
+    <div class="glow"></div>
+    <div class="wrap">
+
+      <div class="notch-stage">
+        <div class="notch" aria-hidden="true">
+          <span class="dot"></span>
+          <span class="pill"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+
+      <div class="eyebrow"><span class="live"></span> Lives in your MacBook notch</div>
+
+      <img class="hero-icon" src="./icon.png" width="120" height="120" alt="Island Vault app icon" />
+
+      <h1>The clipboard that<br /><span class="grad">lives in your notch</span></h1>
+
+      <p class="tagline">
+        Island Vault is a jet-black Dynamic Island for your MacBook. Everything you copy is
+        captured, searchable, and one click away — without ever leaving your Mac.
+      </p>
+
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/pokharnajay/island-vault/releases/latest/download/Island-Vault-0.1.0-arm64.dmg">
+          <span class="apple"></span>
+          <span>Download for macOS
+            <small>Island Vault 0.1.0 · .dmg · Apple Silicon</small>
+          </span>
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/pokharnajay/island-vault">View on GitHub</a>
+      </div>
+
+      <div class="meta-line">
+        <span>Apple Silicon (arm64)</span>
+        <span>·</span>
+        <span>100% local</span>
+        <span>·</span>
+        <span>MIT licensed</span>
+      </div>
+
+      <!-- Card-strip preview -->
+      <div class="preview" aria-hidden="true">
+        <div class="preview-head">
+          <div class="preview-search">⌕ Search every clip you’ve copied…</div>
+        </div>
+        <div class="strip">
+          <div class="clip sel">
+            <div class="kind">✓ Text <span class="pin">📌</span></div>
+            <div class="body">npm run build &amp;&amp; npm run start --prod</div>
+          </div>
+          <div class="clip">
+            <div class="kind">Image</div>
+            <div class="img-fill"></div>
+          </div>
+          <div class="clip">
+            <div class="kind">Text</div>
+            <div class="body">“The notch is the most underused real estate on the Mac.”</div>
+          </div>
+          <div class="clip">
+            <div class="kind">File</div>
+            <div class="body">~/Downloads/Q3-report.pdf</div>
+          </div>
+          <div class="clip">
+            <div class="kind">Text</div>
+            <div class="body">jay@islandvault.app</div>
+          </div>
+          <div class="clip">
+            <div class="kind">Image</div>
+            <div class="img-fill" style="background:linear-gradient(135deg,#143a2e,#1d9e75)"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== FEATURES ===================== -->
+  <section id="features">
+    <div class="wrap">
+      <div class="section-tag">Everything it does</div>
+      <h2>A vault for everything you copy</h2>
+      <p class="section-lead">
+        Hover near the notch and the tray slides out. Your last 100 clips, as a horizontal
+        strip of cards — click any one to copy it straight back.
+      </p>
+
+      <div class="grid">
+        <div class="feature">
+          <div class="ico"></div>
+          <h3>Lives in the notch</h3>
+          <p>A jet-black Dynamic Island that hides in the MacBook notch. Hover near it and the clip tray slides out — no window, no clutter.</p>
+        </div>
+
+        <div class="feature">
+          <div class="ico">⧉</div>
+          <h3>Captures everything</h3>
+          <p>Plain text, rich text, images, and files copied from Finder are all captured automatically the moment you copy them.</p>
+        </div>
+
+        <div class="feature">
+          <div class="ico">🗂</div>
+          <h3>Horizontal card strip</h3>
+          <p>Clips appear as a side-scrolling row of cards, most recent first. Click a card and it’s back on your clipboard instantly.</p>
+        </div>
+
+        <div class="feature">
+          <div class="ico"></div>
+          <h3>Search &amp; keyboard nav</h3>
+          <p>Full-text search across every clip’s contents. Arrow keys move the selection, <code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:5px;font-family:ui-monospace,Menlo,monospace;font-size:13px;">Enter</code> copies the highlighted one.</p>
+        </div>
+
+        <div class="feature">
+          <div class="ico">📌</div>
+          <h3>Pin your favourites</h3>
+          <p>Pin the clips you reach for often. Pinned items are never evicted, even as new copies push older ones out.</p>
+        </div>
+
+        <div class="feature">
+          <div class="ico">💾</div>
+          <h3>Permanent local storage</h3>
+          <p>Keeps your most recent 100 clips in <code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:5px;font-family:ui-monospace,Menlo,monospace;font-size:13px;">~/Library/Application Support/IslandVault</code> — surviving app updates, renames, and reinstalls.</p>
+        </div>
+
+        <div class="feature wide">
+          <div class="ico"></div>
+          <h3>AI quick-actions, powered by your own Claude Code</h3>
+          <p>Right-click any text card to run an action through your locally-installed <code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:5px;font-family:ui-monospace,Menlo,monospace;font-size:13px;">claude</code> CLI. The result lands as a fresh clip at the top of the strip.</p>
+          <div class="chips">
+            <span class="chip">Clean up</span>
+            <span class="chip">Summarize</span>
+            <span class="chip">Translate</span>
+            <span class="chip">Extract links &amp; emails</span>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="ico"></div>
+          <h3>Launch at login</h3>
+          <p>Runs quietly as a background app — no Dock icon, no menu-bar clutter. Starts with your Mac and waits in the notch.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PRIVACY ===================== -->
+  <section style="padding-top:0;">
+    <div class="wrap">
+      <div class="privacy">
+        <div class="ico">🔒</div>
+        <div class="section-tag" style="color:#3ad29f;">Privacy first</div>
+        <h2>100% local. Nothing leaves your Mac.</h2>
+        <p>
+          Every clip lives on your machine and only your machine. Island Vault automatically
+          skips concealed and transient clips from password managers, so secrets are never stored.
+        </p>
+        <p>
+          The single exception is text you explicitly run an AI action on — and even that is
+          processed entirely by <em>your own</em> local <code style="background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px;font-family:ui-monospace,Menlo,monospace;font-size:14px;">claude</code> CLI. No servers, no telemetry, no accounts.
+        </p>
+        <div class="pills">
+          <span class="chip">No cloud sync</span>
+          <span class="chip">No telemetry</span>
+          <span class="chip">No account required</span>
+          <span class="chip">Skips password-manager clips</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== INSTALL ===================== -->
+  <section id="install" style="padding-top:0;">
+    <div class="wrap">
+      <div class="section-tag">Getting started</div>
+      <h2>Install in under a minute</h2>
+      <p class="section-lead">
+        Island Vault ships as an Apple Silicon <code style="background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px;font-family:ui-monospace,Menlo,monospace;font-size:15px;">.dmg</code>. Three steps and you’re running.
+      </p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <h3>Open the .dmg</h3>
+          <p>Download Island Vault and double-click the <code>.dmg</code> to mount it.</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h3>Drag to Applications</h3>
+          <p>Drag the Island Vault icon into your <code>Applications</code> folder, just like any Mac app.</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h3>Right-click → Open</h3>
+          <p>On first launch, right-click the app and choose <b style="color:var(--ink);font-weight:580;">Open</b> to get past Gatekeeper.</p>
+        </div>
+      </div>
+
+      <div class="gatekeeper-note">
+        <span class="gk-ico">⚠️</span>
+        <div>
+          <b>This is an unsigned dev build.</b> macOS Gatekeeper blocks unsigned apps on a normal
+          double-click. The first time only, right-click the app in Applications and choose
+          <b>Open</b> — after that it launches normally and starts at login.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FINAL CTA ===================== -->
+  <section style="padding-top:0;">
+    <div class="wrap">
+      <div class="final">
+        <img src="./icon.png" width="84" height="84" alt="Island Vault icon" style="border-radius:20px;margin-bottom:22px;" />
+        <h2>Put your clipboard in the notch.</h2>
+        <p>Free, open source, and entirely local. Built for Apple Silicon Macs.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/pokharnajay/island-vault/releases/latest/download/Island-Vault-0.1.0-arm64.dmg">
+            <span class="apple"></span>
+            <span>Download for macOS
+              <small>Island Vault 0.1.0 · .dmg · Apple Silicon</small>
+            </span>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/pokharnajay/island-vault">View source</a>
+        </div>
+        <p style="margin-top:26px;font-size:13.5px;color:var(--ink-faint);">
+          Built with Electron · TypeScript · React · node:sqlite
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer>
+    <div class="wrap foot-inner">
+      <div class="foot-brand">
+        <img src="./icon.png" alt="Island Vault icon" />
+        Made by Jay Pokharna · MIT License
+      </div>
+      <div class="foot-links">
+        <a href="https://github.com/pokharnajay/island-vault">GitHub</a>
+        <a href="https://github.com/pokharnajay/island-vault/releases/latest/download/Island-Vault-0.1.0-arm64.dmg">Download</a>
+        <a href="https://pokharnajay.github.io/island-vault/">Home</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

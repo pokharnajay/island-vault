@@ -1,0 +1,81 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Island Vault clipboard icon">
+  <title>Island Vault</title>
+  <desc>Rounded gradient app tile with cards sliding into a black notch slot.</desc>
+  <defs>
+    <linearGradient id="iv-tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6D8BFF"/>
+      <stop offset="0.45" stop-color="#5B5BF0"/>
+      <stop offset="1" stop-color="#7A2BE0"/>
+    </linearGradient>
+    <linearGradient id="iv-sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.30"/>
+      <stop offset="0.4" stop-color="#ffffff" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="iv-slot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000000"/>
+      <stop offset="1" stop-color="#141417"/>
+    </linearGradient>
+    <linearGradient id="iv-slotrim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="0.18" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="iv-cardA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D9E0F5"/>
+    </linearGradient>
+    <linearGradient id="iv-cardB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBFCFF"/>
+      <stop offset="1" stop-color="#CBD6F2"/>
+    </linearGradient>
+    <linearGradient id="iv-cardC" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EAF0FF"/>
+      <stop offset="1" stop-color="#B9C8EC"/>
+    </linearGradient>
+    <linearGradient id="iv-chip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4DF0C0"/>
+      <stop offset="1" stop-color="#22C3A6"/>
+    </linearGradient>
+    <filter id="iv-cardshadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#1A0E3A" flood-opacity="0.40"/>
+    </filter>
+    <clipPath id="iv-tileclip">
+      <rect x="100" y="100" width="824" height="824" rx="185" ry="185"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#iv-tileclip)">
+    <rect x="100" y="100" width="824" height="824" rx="185" ry="185" fill="url(#iv-tile)"/>
+    <circle cx="760" cy="780" r="380" fill="#9B4DFF" opacity="0.35"/>
+    <rect x="100" y="100" width="824" height="500" rx="185" ry="185" fill="url(#iv-sheen)"/>
+
+    <g filter="url(#iv-cardshadow)">
+      <g transform="rotate(-13 512 500)">
+        <rect x="288" y="256" width="424" height="404" rx="46" fill="url(#iv-cardC)"/>
+      </g>
+    </g>
+    <g filter="url(#iv-cardshadow)">
+      <g transform="rotate(-6 512 500)">
+        <rect x="312" y="280" width="424" height="380" rx="46" fill="url(#iv-cardB)"/>
+        <rect x="356" y="336" width="300" height="26" rx="13" fill="#9FB0DA" opacity="0.55"/>
+        <rect x="356" y="384" width="220" height="26" rx="13" fill="#9FB0DA" opacity="0.40"/>
+      </g>
+    </g>
+    <g filter="url(#iv-cardshadow)">
+      <rect x="336" y="300" width="424" height="360" rx="48" fill="url(#iv-cardA)"/>
+      <rect x="380" y="352" width="120" height="44" rx="22" fill="url(#iv-chip)"/>
+      <rect x="380" y="432" width="336" height="30" rx="15" fill="#8FA2D0" opacity="0.65"/>
+      <rect x="380" y="488" width="252" height="30" rx="15" fill="#8FA2D0" opacity="0.45"/>
+    </g>
+
+    <g>
+      <rect x="250" y="624" width="524" height="166" rx="83" fill="#1A0E3A" opacity="0.35"/>
+      <rect x="262" y="610" width="500" height="160" rx="80" fill="url(#iv-slot)"/>
+      <rect x="262" y="610" width="500" height="160" rx="80" fill="url(#iv-slotrim)"/>
+      <rect x="406" y="606" width="212" height="40" rx="20" fill="#000000"/>
+      <rect x="412" y="610" width="200" height="12" rx="6" fill="#34343C" opacity="0.7"/>
+    </g>
+  </g>
+
+  <rect x="101.5" y="101.5" width="821" height="821" rx="183.5" ry="183.5" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="3"/>
+</svg>
