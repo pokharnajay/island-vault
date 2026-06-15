@@ -3,8 +3,8 @@ import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { IPC } from '@shared/ipc-channels'
 import { createOverlayWindow, getWindow } from './overlay-window'
 import { registerIpc } from './ipc'
-import { initStore, listAll } from './store'
-import { initBlobStore } from './blob-store'
+import { initStore, listAll, evict } from './store'
+import { initBlobStore, gcBlobs } from './blob-store'
 import { registerVaultProtocol, registerVaultScheme } from './protocol'
 import { startWatcher } from './clipboard-watcher'
 import { resolveClaude } from './ai-runner'
@@ -26,6 +26,9 @@ if (!gotLock) {
 
     initStore()
     initBlobStore()
+    // Trim any pre-existing overflow down to the cap immediately, rather than
+    // waiting for the next copy to trigger eviction.
+    gcBlobs(evict(getSettings().historyCap))
     registerVaultProtocol()
     registerIpc()
 

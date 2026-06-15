@@ -2,8 +2,13 @@ import { app } from 'electron'
 import * as store from './store'
 import type { Settings } from '@shared/types'
 
+// Hard cap on retained clips — the vault keeps only the most recent MAX_HISTORY,
+// evicting older unpinned items as new ones arrive. Not user-tunable (no UI), so
+// it is clamped on every read regardless of any older stored value.
+const MAX_HISTORY = 100
+
 const DEFAULTS: Settings = {
-  historyCap: 500,
+  historyCap: MAX_HISTORY,
   launchAtLogin: false,
   translateTarget: 'English',
   aiModel: 'haiku' // fast + cheap for clipboard-sized transforms; clear to use the default model
@@ -11,12 +16,17 @@ const DEFAULTS: Settings = {
 
 export function getSettings(): Settings {
   const raw = store.getSetting('app')
-  if (!raw) return { ...DEFAULTS }
-  try {
-    return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) }
-  } catch {
-    return { ...DEFAULTS }
+  const base = (): Settings => {
+    if (!raw) return { ...DEFAULTS }
+    try {
+      return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) }
+    } catch {
+      return { ...DEFAULTS }
+    }
   }
+  const s = base()
+  s.historyCap = Math.min(s.historyCap, MAX_HISTORY)
+  return s
 }
 
 export function setSettings(patch: Partial<Settings>): Settings {
