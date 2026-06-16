@@ -65,6 +65,10 @@ body {
 .trayContent {
   position: absolute;
   inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px 9px;
+  gap: 8px;
   opacity: 0;
   transition: opacity 180ms ease 100ms;
   pointer-events: none;
@@ -75,12 +79,80 @@ body {
   pointer-events: auto;
 }
 
+.panel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
 .tray {
   display: flex;
   flex-direction: column;
+  width: 100%;
   height: 100%;
-  padding: 14px 12px 10px;
-  gap: 10px;
+  gap: 8px;
+}
+
+/* ---- Tab bar (replaces the title row) ---- */
+.tabBar {
+  display: flex;
+  gap: 4px;
+  background: #161618;
+  border-radius: 11px;
+  padding: 3px;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: #8e8e93;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.tab:hover {
+  color: #d1d1d6;
+}
+
+.tab.on {
+  background: #2c2c2e;
+  color: #fff;
+}
+
+.tabGlyph {
+  font-size: 12px;
+}
+
+.tabCount {
+  font-size: 10px;
+  font-weight: 600;
+  color: #8e8e93;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 0 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tab.on .tabCount {
+  color: #fff;
+}
+
+.tabDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff453a;
 }
 
 .trayHeader {
@@ -180,7 +252,7 @@ body {
   font-size: 11.5px;
   line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 6;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
@@ -273,6 +345,240 @@ body {
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+/* ---- Progress ring (timer panel + collapsed pill) ---- */
+.ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ringInner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pillTimer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Timer panel ---- */
+.timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+}
+
+.timerModes {
+  display: flex;
+  gap: 4px;
+  background: #161618;
+  border-radius: 9px;
+  padding: 3px;
+}
+
+.segBtn {
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: #8e8e93;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 14px;
+  cursor: pointer;
+}
+
+.segBtn.on {
+  background: #2c2c2e;
+  color: #fff;
+}
+
+.timerClock {
+  font-size: 21px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+.timerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctrlBtn {
+  background: #1c1c1e;
+  border: none;
+  border-radius: 9px;
+  color: #f2f2f7;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.ctrlBtn:hover {
+  background: #2c2c2e;
+}
+
+.ctrlBtn.primary {
+  background: #0a84ff;
+  color: #fff;
+}
+
+.ctrlBtn.primary:hover {
+  background: #2a96ff;
+}
+
+/* ---- Now Playing ---- */
+.np {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  padding: 2px 4px;
+}
+
+.npArt {
+  flex: 0 0 auto;
+  width: 104px;
+  height: 104px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.npArt img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.npArtFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  color: rgba(255, 255, 255, 0.7);
+  background: linear-gradient(135deg, #5b3fe0, #b06bff);
+}
+
+.npInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.npTitle {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.npArtist {
+  color: #8e8e93;
+  font-size: 12px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.npBar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.npBarFill {
+  height: 100%;
+  border-radius: 2px;
+  background: #fff;
+  transition: width 500ms linear;
+}
+
+.npTimes {
+  display: flex;
+  justify-content: space-between;
+  color: #636366;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+}
+
+.npControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.npBtn {
+  background: none;
+  border: none;
+  color: #f2f2f7;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+}
+
+.npBtn:hover {
+  color: #fff;
+}
+
+.npBtn.play {
+  font-size: 20px;
+}
+
+.npEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  color: #636366;
+  font-size: 12px;
+}
+
+.npEmptyGlyph {
+  font-size: 26px;
+  color: #48484a;
+}
+
+.npHint {
+  font-size: 10px;
+  color: #48484a;
 }
 
 .flashChip {

@@ -1,6 +1,6 @@
 {
   "name": "island-vault",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Dynamic Island clipboard vault for macOS",
   "main": "./out/main/index.js",
   "author": "Jay Pokharna",

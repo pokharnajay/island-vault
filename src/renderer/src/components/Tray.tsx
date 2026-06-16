@@ -92,10 +92,6 @@ export default function Tray({ clips, aiJobs, onCopy, active }: Props) {
 
   return (
     <div className="tray">
-      <header className="trayHeader">
-        <span className="title">Island Vault</span>
-        <span className="count">{clips.length}</span>
-      </header>
       <SearchBar value={query} onChange={setQuery} />
       <div className="strip" ref={stripRef}>
         {shown.map((c, i) => (

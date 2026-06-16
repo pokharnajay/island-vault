@@ -47,3 +47,17 @@ export interface UiMetrics {
   menuBarHeight: number
   pillWidth: number
 }
+
+export type MediaApp = 'Spotify' | 'Music'
+export type MediaControlAction = 'playpause' | 'next' | 'prev'
+
+export interface NowPlaying {
+  app: MediaApp
+  playing: boolean
+  title?: string
+  artist?: string
+  album?: string
+  artworkUrl?: string
+  durationMs?: number
+  positionMs?: number
+}

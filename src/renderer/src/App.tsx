@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Tray from './components/Tray'
+import TabBar, { type HubTab } from './components/TabBar'
+import NowPlaying from './components/NowPlaying'
+import Timer from './components/Timer'
+import ProgressRing from './components/ProgressRing'
+import { useTimer, fmtClock } from './hooks/useTimer'
 import { useClips } from './hooks/useClips'
 import type { AiJobEvent, ClipMeta, UiMetrics } from '@shared/types'
 
 const HOVER_INTENT_MS = 1000
 const LEAVE_GRACE_MS = 350
 const EXPANDED_W = 420
-const EXPANDED_H = 248
+const EXPANDED_H = 212
+
+const RING_COLOR: Record<'focus' | 'break', string> = { focus: '#ff453a', break: '#30d158' }
 
 interface Flash {
   msg: string
@@ -16,6 +23,7 @@ interface Flash {
 export default function App() {
   const clips = useClips()
   const [expanded, setExpandedState] = useState(false)
+  const [tab, setTab] = useState<HubTab>('clipboard')
   const [metrics, setMetrics] = useState<UiMetrics>({ menuBarHeight: 38, pillWidth: 196 })
   const [flash, setFlash] = useState<Flash | null>(null)
   const [aiJobs, setAiJobs] = useState<Record<number, AiJobEvent>>({})
@@ -30,6 +38,10 @@ export default function App() {
     setFlash({ msg, kind })
     flashTimer.current = window.setTimeout(() => setFlash(null), 1400)
   }, [])
+
+  const timer = useTimer((finished) =>
+    showFlash(finished === 'focus' ? 'Focus done — break time' : 'Break over — back to it', 'ok')
+  )
 
   const expand = useCallback(() => {
     if (expandedRef.current) return
@@ -152,10 +164,40 @@ export default function App() {
         onMouseEnter={cancelLeave}
         onMouseLeave={startLeave}
       >
-        <div className="pillContent">{!expanded && flash ? flash.msg : ''}</div>
-        <div className="trayContent">
-          <Tray clips={clips} aiJobs={aiJobs} onCopy={handleCopy} active={expanded} />
+        <div className="pillContent">
+          {flash ? (
+            flash.msg
+          ) : timer.running ? (
+            <div className="pillTimer">
+              <ProgressRing
+                fraction={timer.fraction}
+                size={20}
+                stroke={3}
+                color={RING_COLOR[timer.mode]}
+              />
+              <span style={{ color: RING_COLOR[timer.mode] }}>{fmtClock(timer.remainingMs)}</span>
+            </div>
+          ) : (
+            ''
+          )}
         </div>
+
+        <div className="trayContent">
+          <TabBar
+            tab={tab}
+            onChange={setTab}
+            clipCount={clips.length}
+            timerRunning={timer.running}
+          />
+          <div className="panel">
+            {tab === 'clipboard' && (
+              <Tray clips={clips} aiJobs={aiJobs} onCopy={handleCopy} active={expanded} />
+            )}
+            {tab === 'music' && <NowPlaying active={expanded} />}
+            {tab === 'timer' && <Timer timer={timer} />}
+          </div>
+        </div>
+
         {expanded && flash && <div className={`flashChip ${flash.kind}`}>{flash.msg}</div>}
       </div>
     </div>
