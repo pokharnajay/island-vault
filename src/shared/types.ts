@@ -36,11 +36,13 @@ export interface Settings {
   translateTarget: string
   claudePath?: string
   aiModel?: string
+  focusMs?: number
+  breakMs?: number
 }
 
 export interface CopyResult {
   ok: boolean
-  reason?: 'missing-file' | 'gone'
+  reason?: 'missing-file' | 'gone' | 'write-failed'
 }
 
 export interface UiMetrics {

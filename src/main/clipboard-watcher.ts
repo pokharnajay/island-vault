@@ -97,19 +97,26 @@ function buildClip(kind: Exclude<Kind, 'none'>): store.NewClip | null {
   }
   const img = clipboard.readImage()
   if (img.isEmpty()) return null
-  const png = img.toPNG()
-  const hash = sha1(png)
-  const { width, height } = img.getSize()
-  const { imagePath, thumbPath } = blobs.saveImage(hash, png, img)
-  return {
-    type: 'image',
-    hash,
-    preview: `Image ${width}×${height}`,
-    imagePath,
-    thumbPath,
-    imageW: width,
-    imageH: height,
-    byteSize: png.length
+  try {
+    const png = img.toPNG()
+    const hash = sha1(png)
+    const { width, height } = img.getSize()
+    const { imagePath, thumbPath } = blobs.saveImage(hash, png, img)
+    return {
+      type: 'image',
+      hash,
+      preview: `Image ${width}×${height}`,
+      imagePath,
+      thumbPath,
+      imageW: width,
+      imageH: height,
+      byteSize: png.length
+    }
+  } catch (err) {
+    // Encoding or blob write failed (disk full, read-only, corrupt) — skip this
+    // capture rather than inserting a row that points at a missing blob.
+    console.error('[clipboard-watcher] image capture failed', err)
+    return null
   }
 }
 

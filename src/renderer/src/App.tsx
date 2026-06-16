@@ -39,15 +39,29 @@ export default function App() {
     flashTimer.current = window.setTimeout(() => setFlash(null), 1400)
   }, [])
 
-  const timer = useTimer((finished) =>
-    showFlash(finished === 'focus' ? 'Focus done — break time' : 'Break over — back to it', 'ok')
-  )
+  const timer = useTimer({
+    onComplete: (finished) =>
+      showFlash(finished === 'focus' ? 'Focus done — break time' : 'Break over — back to it', 'ok'),
+    onPersist: (d) =>
+      void window.vault.setSettings({ focusMs: d.focus, breakMs: d.break }).catch(() => {})
+  })
+
+  // Load saved focus/break durations once on mount.
+  const hydrate = timer.hydrate
+  useEffect(() => {
+    void window.vault
+      .getSettings()
+      .then((s) => {
+        if (s.focusMs != null && s.breakMs != null) hydrate(s.focusMs, s.breakMs)
+      })
+      .catch(() => {})
+  }, [hydrate])
 
   const expand = useCallback(() => {
     if (expandedRef.current) return
     expandedRef.current = true
     setExpandedState(true)
-    void window.vault.setExpanded(true)
+    void window.vault.setExpanded(true).catch(() => {})
   }, [])
 
   const collapse = useCallback(() => {
@@ -58,14 +72,14 @@ export default function App() {
     if (!expandedRef.current) return
     expandedRef.current = false
     setExpandedState(false)
-    void window.vault.setExpanded(false)
+    void window.vault.setExpanded(false).catch(() => {})
   }, [])
 
   // Metrics, collapse pushes, AI job events, Escape
   useEffect(() => {
-    void window.vault.metrics().then(setMetrics)
+    void window.vault.metrics().then(setMetrics).catch(() => {})
     const offCollapse = window.vault.onCollapse(() => {
-      void window.vault.metrics().then(setMetrics)
+      void window.vault.metrics().then(setMetrics).catch(() => {})
       collapse()
     })
     const offAi = window.vault.onAiJob((ev) => {
@@ -136,12 +150,19 @@ export default function App() {
 
   const handleCopy = useCallback(
     async (clip: ClipMeta) => {
-      const res = await window.vault.copyClip(clip.id)
-      if (res.ok) {
-        showFlash('Copied', 'ok')
-        collapse()
-      } else {
-        showFlash(res.reason === 'missing-file' ? 'File no longer exists' : 'Item unavailable', 'err')
+      try {
+        const res = await window.vault.copyClip(clip.id)
+        if (res.ok) {
+          showFlash('Copied', 'ok')
+          collapse()
+        } else {
+          showFlash(
+            res.reason === 'missing-file' ? 'File no longer exists' : 'Could not copy',
+            'err'
+          )
+        }
+      } catch {
+        showFlash('Could not copy', 'err')
       }
     },
     [collapse, showFlash]

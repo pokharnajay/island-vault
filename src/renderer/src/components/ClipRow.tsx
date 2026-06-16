@@ -52,7 +52,7 @@ export default function ClipRow({ clip, job, onCopy, selected }: Props) {
       }}
       onContextMenu={(e) => {
         e.preventDefault()
-        void window.vault.contextMenu(clip.id)
+        void window.vault.contextMenu(clip.id).catch(() => {})
       }}
     >
       <div className="cardBody">
@@ -79,7 +79,7 @@ export default function ClipRow({ clip, job, onCopy, selected }: Props) {
         title={clip.pinned ? 'Unpin' : 'Pin'}
         onClick={(e) => {
           e.stopPropagation()
-          void window.vault.pinClip(clip.id, !clip.pinned)
+          void window.vault.pinClip(clip.id, !clip.pinned).catch(() => {})
         }}
       >
         {clip.pinned ? '★' : '☆'}

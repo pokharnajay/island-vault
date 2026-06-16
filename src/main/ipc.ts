@@ -33,27 +33,35 @@ export function registerIpc(): void {
   ipcMain.handle(IPC.ClipsCopy, async (_e, id: number): Promise<CopyResult> => {
     const row = store.getItem(id)
     if (!row) return { ok: false, reason: 'gone' }
-    if (row.type === 'text') {
-      writeTextClip(id, row.text_content ?? '', row.html_content)
-    } else if (row.type === 'image') {
-      const imagePath = row.image_path ? blobs.resolveBlob(row.image_path) : null
-      if (!imagePath || !existsSync(imagePath)) return { ok: false, reason: 'gone' }
-      writeImageClip(id, imagePath)
-    } else {
-      let paths: string[] = []
-      try {
-        paths = JSON.parse(row.file_paths ?? '[]') as string[]
-      } catch {
-        return { ok: false, reason: 'gone' }
+    try {
+      if (row.type === 'text') {
+        writeTextClip(id, row.text_content ?? '', row.html_content)
+      } else if (row.type === 'image') {
+        const imagePath = row.image_path ? blobs.resolveBlob(row.image_path) : null
+        if (!imagePath || !existsSync(imagePath)) return { ok: false, reason: 'gone' }
+        writeImageClip(id, imagePath)
+      } else {
+        let paths: string[] = []
+        try {
+          paths = JSON.parse(row.file_paths ?? '[]') as string[]
+        } catch {
+          return { ok: false, reason: 'gone' }
+        }
+        // Re-check existence at copy time (files can vanish between list and copy).
+        if (paths.length === 0 || !paths.every((p) => existsSync(p))) {
+          return { ok: false, reason: 'missing-file' }
+        }
+        await writeFilesClip(id, paths)
       }
-      if (paths.length === 0 || !paths.every((p) => existsSync(p))) {
-        return { ok: false, reason: 'missing-file' }
-      }
-      await writeFilesClip(id, paths)
+      store.bumpToTop(id)
+      pushClips()
+      return { ok: true }
+    } catch (err) {
+      // Clipboard locked, osascript failed, file deleted mid-write, etc. —
+      // never let the IPC reject (that becomes an unhandled rejection in the UI).
+      console.error('[ipc] copy failed', err)
+      return { ok: false, reason: 'write-failed' }
     }
-    store.bumpToTop(id)
-    pushClips()
-    return { ok: true }
   })
 
   ipcMain.handle(IPC.ClipsPin, (_e, payload: { id: number; pinned: boolean }) => {
@@ -110,25 +118,36 @@ export function registerIpc(): void {
     const win = getWindow()
     if (ev.status === 'done' && ev.result) {
       const text = ev.result
-      const hash = createHash('sha1').update('text:').update(text).digest('hex')
-      const preview = text.replace(/\s+/g, ' ').trim().slice(0, 200)
-      const { id } = store.insertOrBump({
-        type: 'text',
-        hash,
-        preview,
-        textContent: text,
-        byteSize: Buffer.byteLength(text)
-      })
-      writeTextClip(id, text)
-      pushClips()
-      const out: AiJobEvent = {
-        jobId: ev.jobId,
-        sourceClipId: ev.clipId,
-        action: ev.action,
-        status: 'done',
-        newClipId: id
+      try {
+        const hash = createHash('sha1').update('text:').update(text).digest('hex')
+        const preview = text.replace(/\s+/g, ' ').trim().slice(0, 200)
+        const { id } = store.insertOrBump({
+          type: 'text',
+          hash,
+          preview,
+          textContent: text,
+          byteSize: Buffer.byteLength(text)
+        })
+        writeTextClip(id, text)
+        pushClips()
+        const out: AiJobEvent = {
+          jobId: ev.jobId,
+          sourceClipId: ev.clipId,
+          action: ev.action,
+          status: 'done',
+          newClipId: id
+        }
+        win?.webContents.send(IPC.AiJob, out)
+      } catch (err) {
+        console.error('[ipc] failed to store AI result', err)
+        win?.webContents.send(IPC.AiJob, {
+          jobId: ev.jobId,
+          sourceClipId: ev.clipId,
+          action: ev.action,
+          status: 'error',
+          message: 'Could not save AI result'
+        } satisfies AiJobEvent)
       }
-      win?.webContents.send(IPC.AiJob, out)
     } else {
       const out: AiJobEvent = {
         jobId: ev.jobId,

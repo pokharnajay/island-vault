@@ -16,6 +16,12 @@ function arm(clipId: number): void {
   slot = { clipId, expiresAt: Date.now() + WINDOW_MS }
 }
 
+// If a self-write fails, the clipboard never changed — drop the armed slot so a
+// later legitimate copy isn't wrongly suppressed.
+function disarm(): void {
+  slot = null
+}
+
 export function consumeSuppression(): number | null {
   if (!slot) return null
   const { clipId, expiresAt } = slot
@@ -25,16 +31,33 @@ export function consumeSuppression(): number | null {
 
 export function writeTextClip(clipId: number, text: string, html?: string | null): void {
   arm(clipId)
-  if (html) clipboard.write({ text, html })
-  else clipboard.writeText(text)
+  try {
+    if (html) clipboard.write({ text, html })
+    else clipboard.writeText(text)
+  } catch (err) {
+    disarm()
+    throw err
+  }
 }
 
 export function writeImageClip(clipId: number, imagePath: string): void {
   arm(clipId)
-  clipboard.writeImage(nativeImage.createFromPath(imagePath))
+  try {
+    const img = nativeImage.createFromPath(imagePath)
+    if (img.isEmpty()) throw new Error('image unreadable')
+    clipboard.writeImage(img)
+  } catch (err) {
+    disarm()
+    throw err
+  }
 }
 
 export async function writeFilesClip(clipId: number, paths: string[]): Promise<void> {
   arm(clipId)
-  await writeFilesToClipboard(paths)
+  try {
+    await writeFilesToClipboard(paths)
+  } catch (err) {
+    disarm()
+    throw err
+  }
 }

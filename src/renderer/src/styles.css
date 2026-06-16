@@ -442,6 +442,49 @@ body {
   letter-spacing: -0.5px;
 }
 
+/* Duration editor (inside the ring) */
+.durEdit {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.durColon {
+  color: #8e8e93;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.stepBtn {
+  background: none;
+  border: none;
+  color: #8e8e93;
+  font-size: 9px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.stepBtn:hover {
+  color: #fff;
+}
+
+.stepVal {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 30px;
+  text-align: center;
+}
+
 .timerActions {
   display: flex;
   flex-direction: column;

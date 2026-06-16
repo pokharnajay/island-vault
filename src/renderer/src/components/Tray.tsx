@@ -27,9 +27,14 @@ export default function Tray({ clips, aiJobs, onCopy, active }: Props) {
     }
     const token = ++searchToken.current
     const t = window.setTimeout(() => {
-      void window.vault.searchClips(q).then((r) => {
-        if (searchToken.current === token) setResults(r)
-      })
+      void window.vault
+        .searchClips(q)
+        .then((r) => {
+          if (searchToken.current === token) setResults(r)
+        })
+        .catch(() => {
+          /* search failed — keep showing current list */
+        })
     }, 120)
     return () => clearTimeout(t)
   }, [q])

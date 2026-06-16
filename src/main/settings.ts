@@ -11,7 +11,9 @@ const DEFAULTS: Settings = {
   historyCap: MAX_HISTORY,
   launchAtLogin: false,
   translateTarget: 'English',
-  aiModel: 'haiku' // fast + cheap for clipboard-sized transforms; clear to use the default model
+  aiModel: 'haiku', // fast + cheap for clipboard-sized transforms; clear to use the default model
+  focusMs: 25 * 60 * 1000,
+  breakMs: 5 * 60 * 1000
 }
 
 export function getSettings(): Settings {
