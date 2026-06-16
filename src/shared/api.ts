@@ -1,18 +1,8 @@
-import type {
-  AiJobEvent,
-  ClipMeta,
-  CopyResult,
-  MediaControlAction,
-  NowPlaying,
-  Settings,
-  UiMetrics
-} from './types'
+import type { AiJobEvent, ClipMeta, CopyResult, Settings, UiMetrics } from './types'
 
 export interface VaultApi {
   listClips(): Promise<ClipMeta[]>
   searchClips(q: string): Promise<ClipMeta[]>
-  nowPlaying(): Promise<NowPlaying | null>
-  mediaControl(action: MediaControlAction): Promise<void>
   copyClip(id: number): Promise<CopyResult>
   pinClip(id: number, pinned: boolean): Promise<void>
   deleteClip(id: number): Promise<void>

@@ -10,8 +10,6 @@ import { getWindow, menuBarHeight, PILL_W, setExpanded } from './overlay-window'
 import { popupClipMenu } from './context-menu'
 import { aiAvailable, enqueue, onJobEvent, resolveClaude } from './ai-runner'
 import { getSettings, setSettings } from './settings'
-import { controlMedia, getNowPlaying } from './media'
-import type { MediaControlAction } from '@shared/types'
 
 export function pushClips(): void {
   getWindow()?.webContents.send(IPC.ClipsChanged, store.listAll(getSettings().historyCap))
@@ -107,9 +105,6 @@ export function registerIpc(): void {
 
   ipcMain.handle(IPC.SettingsGet, (): Settings => getSettings())
   ipcMain.handle(IPC.SettingsSet, (_e, patch: Partial<Settings>): Settings => setSettings(patch))
-
-  ipcMain.handle(IPC.MediaGet, () => getNowPlaying())
-  ipcMain.handle(IPC.MediaControl, (_e, action: MediaControlAction) => controlMedia(action))
 
   onJobEvent((ev) => {
     const win = getWindow()

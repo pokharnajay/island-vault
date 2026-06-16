@@ -1,4 +1,4 @@
-export type HubTab = 'clipboard' | 'music' | 'timer'
+export type HubTab = 'clipboard' | 'timer'
 
 interface Props {
   tab: HubTab
@@ -9,7 +9,6 @@ interface Props {
 
 const TABS: { key: HubTab; label: string; glyph: string }[] = [
   { key: 'clipboard', label: 'Clips', glyph: '▤' },
-  { key: 'music', label: 'Music', glyph: '♪' },
   { key: 'timer', label: 'Timer', glyph: '◷' }
 ]
 

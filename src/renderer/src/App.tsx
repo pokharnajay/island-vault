@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Tray from './components/Tray'
 import TabBar, { type HubTab } from './components/TabBar'
-import NowPlaying from './components/NowPlaying'
 import Timer from './components/Timer'
 import ProgressRing from './components/ProgressRing'
 import { useTimer, fmtClock } from './hooks/useTimer'
@@ -198,7 +197,6 @@ export default function App() {
             {tab === 'clipboard' && (
               <Tray clips={clips} aiJobs={aiJobs} onCopy={handleCopy} active={expanded} />
             )}
-            {tab === 'music' && <NowPlaying active={expanded} />}
             {tab === 'timer' && <Timer timer={timer} />}
           </div>
         </div>

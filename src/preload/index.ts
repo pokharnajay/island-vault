@@ -12,8 +12,6 @@ function subscribe<T>(channel: string, cb: (payload: T) => void): () => void {
 const api: VaultApi = {
   listClips: () => ipcRenderer.invoke(IPC.ClipsList),
   searchClips: (q) => ipcRenderer.invoke(IPC.ClipsSearch, q),
-  nowPlaying: () => ipcRenderer.invoke(IPC.MediaGet),
-  mediaControl: (action) => ipcRenderer.invoke(IPC.MediaControl, action),
   copyClip: (id) => ipcRenderer.invoke(IPC.ClipsCopy, id),
   pinClip: (id, pinned) => ipcRenderer.invoke(IPC.ClipsPin, { id, pinned }),
   deleteClip: (id) => ipcRenderer.invoke(IPC.ClipsDelete, id),

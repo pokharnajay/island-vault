@@ -13,7 +13,5 @@ export const IPC = {
   AiAvailability: 'ai:availability',
   AiJob: 'ai:job',
   SettingsGet: 'settings:get',
-  SettingsSet: 'settings:set',
-  MediaGet: 'media:get',
-  MediaControl: 'media:control'
+  SettingsSet: 'settings:set'
 } as const
