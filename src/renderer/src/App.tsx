@@ -3,7 +3,7 @@ import Tray from './components/Tray'
 import { useClips } from './hooks/useClips'
 import type { AiJobEvent, ClipMeta, UiMetrics } from '@shared/types'
 
-const HOVER_INTENT_MS = 2900
+const HOVER_INTENT_MS = 1000
 const LEAVE_GRACE_MS = 350
 const EXPANDED_W = 420
 const EXPANDED_H = 248
