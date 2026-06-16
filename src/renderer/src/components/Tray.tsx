@@ -41,6 +41,14 @@ export default function Tray({ clips, aiJobs, onCopy, active }: Props) {
     setSelected(0)
   }, [q, shown.length])
 
+  // On open, snap back to the most-recent (leftmost) card.
+  useEffect(() => {
+    if (active) {
+      setSelected(0)
+      if (stripRef.current) stripRef.current.scrollLeft = 0
+    }
+  }, [active])
+
   useEffect(() => {
     const el = stripRef.current?.children[selected] as HTMLElement | undefined
     el?.scrollIntoView({ behavior: 'smooth', inline: 'nearest' })
