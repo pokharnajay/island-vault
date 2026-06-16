@@ -10,7 +10,9 @@ files:
   - '!{.gitignore,README.md}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
   - '!{dist,docs}/*'
-artifactName: Island-Vault-${version}-${arch}.${ext}
+# Version-independent name so releases/latest/download/Island-Vault-arm64.dmg
+# always resolves to the newest build, no link churn on version bumps.
+artifactName: Island-Vault-${arch}.${ext}
 mac:
   icon: build/icon.icns
   target:

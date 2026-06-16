@@ -9,7 +9,7 @@
 [![Platform](https://img.shields.io/badge/platform-macOS-000000?style=flat-square&logo=apple)](https://www.apple.com/macos/)
 [![Arch](https://img.shields.io/badge/arch-Apple%20Silicon-000000?style=flat-square)](https://support.apple.com/en-us/HT211814)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
-[![Download](https://img.shields.io/badge/Download-.dmg-22c55e?style=flat-square&logo=apple)](https://github.com/pokharnajay/island-vault/releases/latest/download/Island-Vault-0.1.0-arm64.dmg)
+[![Download](https://img.shields.io/badge/Download-.dmg-22c55e?style=flat-square&logo=apple)](https://github.com/pokharnajay/island-vault/releases/latest/download/Island-Vault-arm64.dmg)
 
 </div>
 
@@ -22,7 +22,7 @@ Island Vault turns the dead space around your MacBook notch into a jet-black Dyn
 **[⬇️ Get the latest release →](https://pokharnajay.github.io/island-vault/)**
 
 - **Download page:** https://pokharnajay.github.io/island-vault/
-- **Direct `.dmg`:** https://github.com/pokharnajay/island-vault/releases/latest/download/Island-Vault-0.1.0-arm64.dmg
+- **Direct `.dmg`:** https://github.com/pokharnajay/island-vault/releases/latest/download/Island-Vault-arm64.dmg
 
 > **First launch (Gatekeeper):** this is an unsigned dev build, so macOS won't open it on a normal double-click. **Right-click the app → Open**, then confirm. You only have to do this once.
 
