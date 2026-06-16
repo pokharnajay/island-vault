@@ -22,7 +22,7 @@ export default function Timer({ timer }: { timer: TimerModel }) {
         </button>
       </div>
 
-      <ProgressRing fraction={timer.fraction} size={108} stroke={8} color={color}>
+      <ProgressRing fraction={timer.fraction} size={104} stroke={8} color={color}>
         <div className="timerClock" style={{ color }}>
           {fmtClock(timer.remainingMs)}
         </div>
