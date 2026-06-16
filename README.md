@@ -15,7 +15,7 @@
 
 ---
 
-Island Vault turns the dead space around your MacBook notch into a jet-black Dynamic Island that holds your entire clipboard history. Hover near the notch and a tray of cards slides out. Everything you copy — text, images, files — is captured automatically and one click away. It's a clipboard manager that stays completely out of sight until you need it, and completely on your Mac, always.
+Island Vault turns the dead space around your MacBook notch into a jet-black Dynamic Island. Hover near the notch and it slides open into a small hub with two tabs: **Clips** — your entire clipboard history as a strip of cards — and **Timer** — a built-in Pomodoro focus timer. Everything you copy (text, images, files) is captured automatically and one click away, and the timer's ring keeps ticking right inside the pill while you work. It stays completely out of sight until you need it, and completely on your Mac, always.
 
 ## Download
 
@@ -28,11 +28,13 @@ Island Vault turns the dead space around your MacBook notch into a jet-black Dyn
 
 ## Features
 
-- 🌑 **Lives in the notch.** A jet-black Dynamic Island that blends into the bezel. Hover near the notch and the tray slides out.
+- 🌑 **Lives in the notch.** A jet-black Dynamic Island that blends into the bezel. Hover near the notch and it slides open.
+- 🗂 **Two-tab hub.** Switch between **Clips** and **Timer** right at the top of the pill.
 - 📋 **Captures everything automatically.** Plain text, rich text, images, and files (yes, Finder copies) — all saved the moment you copy them.
 - 🃏 **Horizontal card strip.** Your clips appear as cards, most recent first. Click any card to copy it straight back to the clipboard.
 - 🔍 **Full-text search + keyboard nav.** Search across all clip contents instantly. Arrow keys move the selection, **Enter** copies — never touch the mouse.
 - 📌 **Pin favourites.** Pinned clips are protected and never evicted.
+- ⏱️ **Pomodoro focus timer.** A Focus/Break timer with a real progress ring. Set any duration from **00:01 to 60:60**, and the ring keeps counting down inside the collapsed pill while you work — pause and reopen later and it resumes right where it left off.
 - 🤖 **AI quick-actions on text.** Right-click a text card to **Clean up**, **Summarize**, **Translate**, or **Extract links & emails** — powered by your own local `claude` CLI. The result lands as a fresh clip at the top.
 - 💾 **Permanent local storage.** Lives at `~/Library/Application Support/IslandVault` and survives app updates, renames, and reinstalls. Keeps your most recent 100 clips; older unpinned ones are auto-evicted.
 - 🔒 **Privacy first.** 100% local. Skips concealed/transient clips from password managers. Nothing ever leaves your Mac.
@@ -45,6 +47,10 @@ Island Vault turns the dead space around your MacBook notch into a jet-black Dyn
 3. **Click to copy.** Tap a card (or press **Enter**) and it's back on your clipboard, ready to paste.
 
 That's the whole loop. Copy anything, anywhere — Island Vault remembers it so you don't have to.
+
+## Focus timer
+
+Switch to the **Timer** tab for a built-in Pomodoro. Toggle between **Focus** and **Break**, and tap the clock to set any duration from **00:01 to 60:60** with the minute/second steppers — your durations are saved and restored next launch. Hit **Start** and the progress ring animates down; collapse the island and a mini ring + countdown stay visible right in the notch. Pause anytime and reopen later — it resumes exactly where you left off, even across sleep.
 
 ## AI quick-actions
 
@@ -87,7 +93,7 @@ Electron · TypeScript · React · `node:sqlite` — packaged as an Apple Silico
 
 <div align="center">
 
-Made by **Jay Pokharna** · Licensed under the [MIT License](#license) · v0.1.0
+Made by **Jay Pokharna** · Licensed under the [MIT License](#license) · v0.3.0
 
 [Repository](https://github.com/pokharnajay/island-vault) · [Download](https://pokharnajay.github.io/island-vault/)
 
