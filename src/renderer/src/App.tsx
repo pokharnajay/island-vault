@@ -6,12 +6,13 @@ import Timer from './components/Timer'
 import ProgressRing from './components/ProgressRing'
 import { useTimer, fmtClock } from './hooks/useTimer'
 import { useClips } from './hooks/useClips'
+import iconUrl from './assets/icon.png'
 import type { AiJobEvent, ClipMeta, UiMetrics } from '@shared/types'
 
 const HOVER_INTENT_MS = 1000
 const LEAVE_GRACE_MS = 350
 const EXPANDED_W = 420
-const EXPANDED_H = 212
+const EXPANDED_H = 240
 
 const RING_COLOR: Record<'focus' | 'break', string> = { focus: '#ff453a', break: '#30d158' }
 
@@ -183,6 +184,10 @@ export default function App() {
         </div>
 
         <div className="trayContent">
+          <div className="brandRow">
+            <img className="brandIcon" src={iconUrl} alt="" draggable={false} />
+            <span className="brandName">Island Vault</span>
+          </div>
           <TabBar
             tab={tab}
             onChange={setTab}

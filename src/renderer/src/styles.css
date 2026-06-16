@@ -94,7 +94,28 @@ body {
   gap: 8px;
 }
 
-/* ---- Tab bar (replaces the title row) ---- */
+/* ---- Brand header (above the switcher) ---- */
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 1px;
+}
+
+.brandIcon {
+  width: 19px;
+  height: 19px;
+  border-radius: 5px;
+}
+
+.brandName {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+}
+
+/* ---- Tab bar (the switcher) ---- */
 .tabBar {
   display: flex;
   gap: 4px;
